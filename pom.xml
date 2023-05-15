@@ -12,7 +12,7 @@
 	<artifactId>filmorate</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>java-filmorate</name>
-	<description>java-filmorate</description>
+	<description>java-filmorate version 1</description>
 
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
