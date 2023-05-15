@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -11,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,13 +23,13 @@ public class UserController {
     private Map<Integer, User> users = new HashMap<>();
     private int id = 1;
 
-    private int generateId(){
+    private int generateId() {
         return id++;
     }
 
     @PostMapping
-    public User create(@RequestBody @Valid User user){
-        if (users.containsValue(user)){
+    public User create(@RequestBody @Valid User user) {
+        if (users.containsValue(user)) {
             users.put(user.getId(), user);
             log.info("Пользователь с id = {} обновлен", user.getId());
         }
@@ -42,7 +40,7 @@ public class UserController {
         return user;
     }
 
-    private void validate(User user){
+    private void validate(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
@@ -62,7 +60,7 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<User> getAll (){
+    public Collection<User> getAll() {
         return users.values();
     }
 
