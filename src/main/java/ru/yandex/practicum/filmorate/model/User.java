@@ -5,10 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @NotNull
@@ -20,13 +17,17 @@ public class User {
 
     @NotNull
     private Integer id;
+    @NotNull
+    @NotBlank
     @Email(message = "email должно содержать символы или цифры")
-    String email;
+    private String email;
+    @NotNull
+    @NotBlank(message = "Имя должно содержать символы")
     private String name;
+    @NotNull
     @NotBlank(message = "Логин не может быть пустым!")
     private String login;
-
-    @Past
     @NonNull
+    @PastOrPresent
     private LocalDate birthday;
 }

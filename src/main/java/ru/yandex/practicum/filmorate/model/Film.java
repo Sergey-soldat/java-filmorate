@@ -13,16 +13,20 @@ import java.time.LocalDate;
 @NoArgsConstructor
 
 public class Film {
+
     @NotNull
     private Integer id;
+    @NotNull
     @NotBlank(message = "Имя должно содержать символы")
     private String name;
+    @NotNull
     @NotBlank(message = "Описание должно содержать символы")
     @Size(max = 200, message = "вместимость описания до 200 символов")
     private String description;
-    @Past
+    @PastOrPresent
     private LocalDate releaseDate;
-    @Positive(message = "продолжительность должна быть отрицательной")
     @NotNull
+    @NotBlank
+    @Positive(message = "продолжительность должна быть не отрицательной")
     private Integer duration;
 }
