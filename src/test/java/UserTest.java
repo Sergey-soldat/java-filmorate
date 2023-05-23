@@ -25,19 +25,13 @@ public class UserTest {
     }
 
     @Test
-    public void spaceInLogin () {
+    public void spaceInLogin() {
         User user = new User(3, "yandex@ya.ru", "yandex", "Tes t", LocalDate.of(2000, 1, 1));
         assertThrows(ValidationException.class, () -> userController.create(user));
     }
 
-//    @Test
-//    public void spaceInName () {
-//        User user = new User(3, "yandex@ya.ru", "yand ex", "Test", LocalDate.of(2000, 1, 1));
-//        assertThrows(ValidationException.class, () -> userController.create(user));
-//    }
-
     @Test
-    public void emailTest () {
+    public void emailTest() {
         User user = new User(3, "yandexya.ru", "yandex", "Test", LocalDate.of(2000, 1, 1));
         assertThrows(ValidationException.class, () -> userController.create(user));
     }
@@ -76,12 +70,6 @@ public class UserTest {
         User user = new User(33, "yandex@ya.ru", "Имя", null, LocalDate.of(2000, 1, 1));
         assertThrows(ValidationException.class, () -> userController.create(user));
     }
-
-//    @Test
-//    public void emailNull() {
-//        User user = new User(33, null, "Имя", "yandex", LocalDate.of(2000, 1, 1));
-//        assertThrows(ValidationException.class, () -> userController.create(user));
-//    }
 
     @Test
     public void emailBlank() {

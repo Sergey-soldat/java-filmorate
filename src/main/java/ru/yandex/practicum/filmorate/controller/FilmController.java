@@ -50,6 +50,7 @@ public class FilmController {
             throw new ValidationException("Дата выпуска Film недействительна");
         }
         if (film.getName().isBlank() || film.getName() == null) {
+            log.debug("Имя должно быть корректно заполнено", film.getName());
             throw new ValidationException("Имя Film не может быть пустым");
         }
         if (film.getDuration() <= 0) {
@@ -57,32 +58,28 @@ public class FilmController {
             throw new ValidationException("Продолжительность Film не может быть отрицательным");
         }
         if (film.getDescription() == null || film.getDescription().isBlank() || film.getDescription().length() > 200) {
+            log.debug("Описание должно быть корректно заполнено", film.getDescription());
             throw new ValidationException("Описание Film не может быть больше 200 символов");
         }
     }
 
     @GetMapping
     public Collection<Film> getAll() {
-        for (Integer id : films.keySet()) {
-            log.info("Film с id" + id + "возвращён");
-        }
+        log.info("Возвращён список фильмов");
         return films.values();
     }
 
     @Valid
     @PutMapping
     public Film put(@RequestBody @Valid Film film) {
-        if ((id <= 0) || (film.getName() == null)) {
+        if ((id <= 0)) {
+            log.debug("Film с id:{}", film.getId());
             throw new ValidationException("id должен быть больше 0");
         }
-//        if ((film.getName() == null) || (film.getName().isEmpty())){
-//            throw new ValidationException("Name должно быть заполненным");
-//        }
-        if (! films.containsKey(film.getId())) {
+        if (!films.containsKey(film.getId())) {
             log.debug("Film с id:{}", film.getId());
             throw new IDException("Id не обнаружен");
         }
-//        containsKeyId(film);
         validate(film);
         films.put(film.getId(), film);
         log.info("Film с id:{} обновлен", film.getId());

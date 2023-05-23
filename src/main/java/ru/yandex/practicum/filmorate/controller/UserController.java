@@ -34,6 +34,7 @@ public class UserController {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+        log.info("Логин присвоен в роле имени");
     }
 
     @Valid
@@ -48,10 +49,10 @@ public class UserController {
     }
 
     private void validate(User user) {
-        loginInName(user);
         if (user.getLogin() == null || user.getLogin().isBlank()) {
             throw new ValidationException("логин не может быть пустым");
         }
+        loginInName(user);
         if (user.getLogin().contains(" ")) {
             log.debug("Login User: {}", user.getLogin());
             throw new ValidationException("логин не может содержать пробелы");
@@ -60,20 +61,19 @@ public class UserController {
             user.setEmail(user.getEmail());
             log.debug("У User с id:{} нет почты", user.getId());
         }
-        if (! user.getEmail().contains("@")) {
+        if (!user.getEmail().contains("@")) {
             log.debug("Email User: {}", user.getEmail());
             throw new ValidationException("логин должен содержать символ почты");
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.debug("Некорректная дата дня рождения");
             throw new ValidationException("дата рождения должна быть не будущей");
         }
     }
 
     @GetMapping
     public Collection<User> getAll() {
-        for (Integer id : users.keySet()) {
-            log.info("User с id" + id + "возвращён");
-        }
+        log.info("Возвращён список пользователей");
         return users.values();
     }
 
@@ -81,6 +81,7 @@ public class UserController {
     @PutMapping
     public User put(@RequestBody @Valid User user) {
         if (!users.containsKey(user.getId())) {
+            log.debug("Пользователь с таким id не найден");
             throw new ValidationException("User не найден");
         } else {
             validate(user);
