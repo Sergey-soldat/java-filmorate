@@ -33,7 +33,6 @@ public class FilmController {
         }
     }
 
-    @Valid
     @PostMapping
     public Film create(@RequestBody @Valid Film film) {
         containsKeyId(film);
@@ -49,18 +48,6 @@ public class FilmController {
             log.debug("Дата выпуска Film :{}", film.getReleaseDate());
             throw new ValidationException("Дата выпуска Film недействительна");
         }
-        if (film.getName().isBlank() || film.getName() == null) {
-            log.debug("Имя должно быть корректно заполнено", film.getName());
-            throw new ValidationException("Имя Film не может быть пустым");
-        }
-        if (film.getDuration() <= 0) {
-            log.debug("Продолжительность Film: {}", film.getDuration());
-            throw new ValidationException("Продолжительность Film не может быть отрицательным");
-        }
-        if (film.getDescription() == null || film.getDescription().isBlank() || film.getDescription().length() > 200) {
-            log.debug("Описание должно быть корректно заполнено", film.getDescription());
-            throw new ValidationException("Описание Film не может быть больше 200 символов");
-        }
     }
 
     @GetMapping
@@ -69,7 +56,6 @@ public class FilmController {
         return films.values();
     }
 
-    @Valid
     @PutMapping
     public Film put(@RequestBody @Valid Film film) {
         if ((id <= 0)) {

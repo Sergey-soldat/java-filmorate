@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +36,6 @@ public class UserController {
         log.info("Логин присвоен в роле имени");
     }
 
-    @Valid
     @PostMapping
     public User create(@RequestBody @Valid User user) {
         containsKeyId(user);
@@ -49,25 +47,10 @@ public class UserController {
     }
 
     private void validate(User user) {
-        if (user.getLogin() == null || user.getLogin().isBlank()) {
-            throw new ValidationException("логин не может быть пустым");
-        }
         loginInName(user);
         if (user.getLogin().contains(" ")) {
             log.debug("Login User: {}", user.getLogin());
             throw new ValidationException("логин не может содержать пробелы");
-        }
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            user.setEmail(user.getEmail());
-            log.debug("У User с id:{} нет почты", user.getId());
-        }
-        if (!user.getEmail().contains("@")) {
-            log.debug("Email User: {}", user.getEmail());
-            throw new ValidationException("логин должен содержать символ почты");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.debug("Некорректная дата дня рождения");
-            throw new ValidationException("дата рождения должна быть не будущей");
         }
     }
 
@@ -77,7 +60,6 @@ public class UserController {
         return users.values();
     }
 
-    @Valid
     @PutMapping
     public User put(@RequestBody @Valid User user) {
         if (!users.containsKey(user.getId())) {
