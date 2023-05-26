@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
-@NotNull
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,6 +15,7 @@ public class User {
 
     private Integer id;
     @Email(message = "email должно содержать символы или цифры")
+    @NotNull
     private String email;
     private String name;
     @NotBlank(message = "Логин не может быть пустым!")

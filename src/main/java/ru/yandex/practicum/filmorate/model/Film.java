@@ -17,7 +17,6 @@ public class Film {
     private String name;
     @Size(max = 200, message = "вместимость описания до 200 символов")
     private String description;
-    @PastOrPresent
     private LocalDate releaseDate;
     @Positive(message = "продолжительность должна быть не отрицательной")
     private Integer duration;

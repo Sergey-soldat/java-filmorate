@@ -47,11 +47,11 @@ public class UserController {
     }
 
     private void validate(User user) {
-        loginInName(user);
         if (user.getLogin().contains(" ")) {
             log.debug("Login User: {}", user.getLogin());
             throw new ValidationException("логин не может содержать пробелы");
         }
+        loginInName(user);
     }
 
     @GetMapping
