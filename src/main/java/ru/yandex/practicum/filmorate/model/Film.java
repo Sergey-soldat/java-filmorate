@@ -1,23 +1,25 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Film {
-
-    private Integer id;
-    @NotBlank(message = "Имя должно содержать символы")
+    private int id;
+    @NotNull(message = "Имя должно содержать символы")
+    @NotEmpty
     private String name;
     @Size(max = 200, message = "вместимость описания до 200 символов")
     private String description;
+    @PastOrPresent(message = "дата выпуска не должна быть будущей")
     private LocalDate releaseDate;
-    @Positive(message = "продолжительность должна быть не отрицательной")
-    private Integer duration;
+    @Positive(message = "продолжительность должна быть отрицательной")
+    private int duration;
+    private Set<Integer> userIdLikes = new HashSet<>();
 }

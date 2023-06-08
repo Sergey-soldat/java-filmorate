@@ -1,74 +1,87 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.IDException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.*;
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
-
 public class FilmController {
 
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int id = 1;
-    private static final LocalDate FIRST_FILM_RELEASE = LocalDate.of(1895, 12, 28);
+    @Autowired
+    private FilmService filmService;
 
-    private Integer generateID() {
-        return id++;
+    @Autowired
+    private UserService userService;
+
+    @GetMapping
+    public List<Film> getAll() {
+        return filmService.getAll();
     }
 
-    private void containsKeyId(Film film) {
-        if (films.containsKey(film.getId())) {
-            log.debug("Film с id:{}", film.getId());
-            throw new IDException("Id уже занят");
-        }
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable int id) {
+        checkFilm(id, true);
+        return filmService.getFilmById(id);
     }
 
     @PostMapping
-    public Film create(@RequestBody @Valid Film film) {
-        containsKeyId(film);
-        film.setId(generateID());
-        validate(film);
-        films.put(film.getId(), film);
-        log.info("Создан Film с id:{}", film.getId());
-        return film;
-    }
-
-    private void validate(Film film) {
-        if (film.getReleaseDate().isBefore(FIRST_FILM_RELEASE)) {
-            log.debug("Дата выпуска Film :{}", film.getReleaseDate());
-            throw new ValidationException("Дата выпуска Film недействительна");
-        }
-    }
-
-    @GetMapping
-    public Collection<Film> getAll() {
-        log.info("Возвращён список фильмов");
-        return films.values();
+    public Film createFilm(@Valid @RequestBody Film film) {
+        checkFilm(film.getId(), false);
+        log.info("Фильм " + film.getName() + " с айди =" + film.getId() + " создан");
+        return filmService.add(film);
     }
 
     @PutMapping
-    public Film put(@RequestBody @Valid Film film) {
-        if ((id <= 0)) {
-            log.debug("Film с id:{}", film.getId());
-            throw new ValidationException("id должен быть больше 0");
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        checkFilm(film.getId(), true);
+        log.info("Фильм " + film.getName() + " с айди = " + film.getId() + " обновлен");
+        return filmService.update(film);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
+        checkFilm(id, true);
+        checkUser(userId);
+        log.info("Пользователь  с айди =" + id + " поставил свой лайк Пользователю с айди" + userId);
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
+        checkFilm(id, true);
+        checkUser(userId);
+        log.info("Пользователь  с айди = " + id + " удалил свой лайк у Пользователя с айди " + userId);
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getMostPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getMostPopularFilms(count);
+    }
+
+    private void checkUser(int userId) {
+        if (userService.getUser(userId) == null) {
+            throw new NotFoundException("Пользователь  с айди = " + userId + " не найден");
         }
-        if (!films.containsKey(film.getId())) {
-            log.debug("Film с id:{}", film.getId());
-            throw new IDException("Id не обнаружен");
+    }
+
+    private void checkFilm(int filmId, boolean isValid) {
+        if (isValid) {
+            if (filmService.getFilmById(filmId) == null) {
+                throw new NotFoundException("Фильм с айди =" + filmId + " не найден");
+            }
+        } else if (filmId != 0 && filmService.getFilmById(filmId) != null) {
+            throw new AlreadyExistException("Фильм с айди =" + filmId + " уже создан");
         }
-        validate(film);
-        films.put(film.getId(), film);
-        log.info("Film с id:{} обновлен", film.getId());
-        return film;
     }
 }
