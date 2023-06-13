@@ -16,9 +16,12 @@ import java.util.*;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final UserService userService;
 
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> getAll() {
@@ -28,6 +31,7 @@ public class UserController {
     @GetMapping("/{id}")
     public User getUser(@PathVariable int id) {
         validateIfUserExist(id, true);
+        log.info("Все пользователи" + userService.getUser(id));
         return userService.getUser(id);
     }
 
@@ -36,7 +40,7 @@ public class UserController {
         validateIfUserExist(user.getId(), false);
         validateUserName(user);
         log.info("User " + user.getEmail() + "was added");
-        return userService.add(user);
+        return userService.createUser(user);
     }
 
     @PutMapping
@@ -73,6 +77,7 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
+        log.info("Все друзья пользователя с id" + id);
         return userService.getFriends(id);
     }
 
@@ -80,17 +85,20 @@ public class UserController {
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         validateIfUserExist(id, true);
         validateIfUserExist(otherId, true);
+        log.info("Общие друзья пользователей с id" + id + " и " + otherId);
         return userService.getCommonFriends(id, otherId);
     }
 
     private void validateEmail(User user) {
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            log.debug("email не найден");
             throw new ValidationException("Can't update user with empty email");
         }
     }
 
     private void validateUserName(User user) {
         if (user.getName() == null || user.getName().isEmpty()) {
+            log.debug("Имя пользователя пустое");
             user.setName(user.getLogin());
         }
     }
@@ -98,10 +106,12 @@ public class UserController {
     private void validateIfUserExist(int userId, boolean ifUserShouldExist) {
         if (ifUserShouldExist) {
             if (userService.getUser(userId) == null || userId < 0) {
+                log.debug("Не найден пользователь с id " + userId);
                 throw new NotFoundException("User with id=" + userId + " is not exist");
             }
         } else {
             if (userService.getUser(userId) != null) {
+                log.debug("User with id=" + userId + " already exist");
                 throw new AlreadyExistException("User with id=" + userId + " already exist");
             }
         }

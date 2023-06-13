@@ -5,12 +5,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
+import java.net.UnknownServiceException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,19 +23,24 @@ public class InMemoryFilmStorage implements FilmStorage {
         return filmID++;
     }
 
-    private void validate(@Validated Film film) {
+    private void validate(Film film) {
         if (film.getReleaseDate().isBefore(FIRST_FILM_RELEASE)) {
             log.debug("Дата выпуска Film :{}", film.getReleaseDate());
             throw new ValidationException("Дата выпуска Film недействительна");
         }
     }
 
-    private int compareFilms(Film filmFirst, Film filmSecond) {
-        int result = 0;
-        if (filmFirst.getUserIdLikes().size() > filmSecond.getUserIdLikes().size()) {
-            result = -1;
-        }
-        return result;
+//    private int compareFilms(Film filmFirst, Film filmSecond) {
+//        int result = 0;
+//        if (filmFirst.getUserIdLikes().size() > filmSecond.getUserIdLikes().size()) {
+//            result = -1;
+//        }
+//        return result;
+//    }
+
+    @Override
+    public Map<Integer, Film> getFilms (){
+        return films;
     }
 
     @Override
@@ -78,8 +82,10 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         return films.values().stream()
-                .sorted(this::compareFilms)
+//                .sorted(Comparator.comparingInt( (Film film) -> film.getUserIdLikes().size()))
+                .sorted((f1, f2) -> f2.getUserIdLikes().size() - f1.getUserIdLikes().size())
+//                .sorted(this::compareFilms)
                 .limit(count)
-                .collect(Collectors.toCollection(ArrayList::new));
+                .collect(Collectors.toList());
     }
 }

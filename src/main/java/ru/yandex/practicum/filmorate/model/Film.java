@@ -11,6 +11,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Film {
+//    @Positive
     private int id;
     @NotNull(message = "Имя должно содержать символы")
     @NotEmpty

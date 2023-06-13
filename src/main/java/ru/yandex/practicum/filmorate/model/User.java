@@ -12,6 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
+//    @Positive
     private int id;
     @NotNull
     @Email(message = "email должно содержать символы или цифры")
