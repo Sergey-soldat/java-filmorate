@@ -2,12 +2,9 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
-import java.net.UnknownServiceException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,16 +27,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
     }
 
-//    private int compareFilms(Film filmFirst, Film filmSecond) {
-//        int result = 0;
-//        if (filmFirst.getUserIdLikes().size() > filmSecond.getUserIdLikes().size()) {
-//            result = -1;
-//        }
-//        return result;
-//    }
-
     @Override
-    public Map<Integer, Film> getFilms (){
+    public Map<Integer, Film> getFilms() {
         return films;
     }
 
@@ -82,9 +71,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         return films.values().stream()
-//                .sorted(Comparator.comparingInt( (Film film) -> film.getUserIdLikes().size()))
                 .sorted((f1, f2) -> f2.getUserIdLikes().size() - f1.getUserIdLikes().size())
-//                .sorted(this::compareFilms)
                 .limit(count)
                 .collect(Collectors.toList());
     }

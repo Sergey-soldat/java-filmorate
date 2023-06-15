@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -31,29 +30,13 @@ public class UserService {
         }
     }
 
-//    private void validateUserName(User user) {
-//        if (user.getName() == null || user.getName().isEmpty()) {
-//            log.debug("Имя пользователя пустое");
-//            user.setName(user.getLogin());
-//        }
-//    }
-
     private void validateIfUserExist(int userId, boolean ifUserShouldExist) {
         if (ifUserShouldExist) {
-//            if (getUser(userId) == null || userId < 0) {
-//                log.debug("Не найден пользователь с id " + userId);
-//                throw new NotFoundException("User with id=" + userId + " is not exist");
-//            }
-            if ((! userStorage.getUsers().containsKey(userId))) {
+            if ((!userStorage.getUsers().containsKey(userId)) || userId < 0) {
                 log.debug("Не найден пользователь с id " + userId);
                 throw new NotFoundException("User with id=" + userId + " is not exist");
             }
-        } else
-//            if (getUser(userId) != null) {
-//            log.debug("User with id=" + userId + " already exist");
-//            throw new AlreadyExistException("User with id=" + userId + " already exist");
-//        }
-        if (userStorage.getUsers().containsKey(userId) && userId != 0) {
+        } else if (userStorage.getUsers().containsKey(userId)) {
             log.debug("User with id=" + userId + " already exist");
             throw new AlreadyExistException("User with id=" + userId + " already exist");
         }
@@ -61,9 +44,9 @@ public class UserService {
 
     public static void loginInName(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
+            log.info("Логин присвоен в роле имени");
             user.setName(user.getLogin());
         }
-        log.info("Логин присвоен в роле имени");
     }
 
     public List<User> getAll() {
@@ -71,8 +54,8 @@ public class UserService {
     }
 
     public User createUser(User user) {
-//        validateIfUserExist(user.getId(), false);
-//        loginInName(user);
+        validateIfUserExist(user.getId(), false);
+        loginInName(user);
         return userStorage.createUser(user);
     }
 
@@ -80,25 +63,33 @@ public class UserService {
         if (user.getId() <= 0) {
             throw new ValidationException("Нельзя обновить Пользователя с айди =" + user.getId());
         }
+        validateIfUserExist(user.getId(), true);
+        validateEmail(user);
+        loginInName(user);
         return userStorage.updateUser(user);
     }
 
     public User getUser(int userId) {
-//        validateIfUserExist(userId, true);
+        validateIfUserExist(userId, true);
         return userStorage.getUser(userId);
     }
 
     public void addFriend(int userId, int friendId) {
+        validateIfUserExist(userId, true);
+        validateIfUserExist(friendId, true);
         userStorage.addFriend(userId, friendId);
         userStorage.addFriend(friendId, userId);
     }
 
     public void deleteFriend(int userId, int friendId) {
+        validateIfUserExist(userId, true);
+        validateIfUserExist(friendId, true);
         userStorage.deleteFriend(userId, friendId);
         userStorage.deleteFriend(friendId, userId);
     }
 
     public void deleteUser(User user) {
+        validateIfUserExist(user.getId(), true);
         userStorage.deleteUser(user);
     }
 
@@ -107,6 +98,8 @@ public class UserService {
     }
 
     public List<User> getCommonFriends(int userId, int userIdToCompare) {
+        validateIfUserExist(userId, true);
+        validateIfUserExist(userIdToCompare, true);
         return userStorage.getCommonFriends(userId, userIdToCompare);
     }
 }

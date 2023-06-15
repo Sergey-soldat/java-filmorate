@@ -18,7 +18,6 @@ import java.util.List;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
-//    private final UserService userService;
     private final UserStorage userStorage;
 
     @Autowired
@@ -28,11 +27,7 @@ public class FilmService {
     }
 
     private void checkUser(int userId) {
-//        if (userService.getUser(userId) == null) {
-//            log.debug("Пользователь  с id = " + userId + " не найден");
-//            throw new NotFoundException("Пользователь  с айди = " + userId + " не найден");
-//        }
-        if (! userStorage.getUsers().containsKey(userId)) {
+        if (!userStorage.getUsers().containsKey(userId)) {
             log.debug("Пользователь  с id = " + userId + " не найден");
             throw new NotFoundException("Пользователь  с айди = " + userId + " не найден");
         }
@@ -40,11 +35,7 @@ public class FilmService {
 
     private void checkFilm(Integer filmId, boolean isValid) {
         if (isValid) {
-//            if (getFilmById(filmId) == null) {
-//                log.debug("Фильм  с id = " + filmId + " не найден");
-//                throw new NotFoundException("Фильм с айди =" + filmId + " не найден");
-//            }
-            if (! filmStorage.getFilms().containsKey(filmId)) {
+            if (!filmStorage.getFilms().containsKey(filmId)) {
                 log.debug("Фильм  с id = " + filmId + " не найден");
                 throw new NotFoundException("Фильм с айди =" + filmId + " не найден");
             }
@@ -52,12 +43,6 @@ public class FilmService {
                 filmStorage.getFilms().containsKey(filmId)) {
             log.debug("Фильм с айди =" + filmId + " уже создан");
             throw new AlreadyExistException("Фильм с айди =" + filmId + " уже создан");
-        }
-    }
-
-    private void negativeID(int id) {
-        if (id <= 0) {
-            throw new ValidationException("id <= 0");
         }
     }
 
@@ -84,19 +69,10 @@ public class FilmService {
         filmStorage.addLike(filmId, userId);
     }
 
-    public void  deleteLike(Integer filmId, int userId) {
-//        negativeID(filmId);
-//        negativeID(userId);
+    public void deleteLike(Integer filmId, int userId) {
         checkFilm(filmId, true);
         checkUser(userId);
-//        if (! userStorage.getUsers().containsKey(userId)) {
-//            log.debug("Пользователь  с id = " + userId + " не найден");
-//            throw new NotFoundException("Пользователь  с айди = " + userId + " не найден");
-//        } else {
-//            log.info("Удалён лайк из фильма " + filmId + " пользователем " + userId);
-//            filmStorage.deleteLike(filmId, userId);
         filmStorage.getFilms().get(filmId).getUserIdLikes().remove(userId);
-//        }
     }
 
     public List<Film> getMostPopularFilms(Integer id) {
