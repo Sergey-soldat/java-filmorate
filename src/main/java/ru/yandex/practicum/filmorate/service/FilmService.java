@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final LocalDate FIRST_FILM_RELEASE = LocalDate.of(1895, 12, 28);
+    private static final LocalDate FIRST_FILM_RELEASE = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(InMemoryFilmStorage inMemoryFilmStorage, InMemoryUserStorage inMemoryUserStorage) {
