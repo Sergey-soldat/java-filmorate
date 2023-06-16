@@ -44,10 +44,10 @@ public class UserController {
         return userService.update(user);
     }
 
-    @DeleteMapping
-    public void deleteUser(@RequestBody User user) {
-        log.info("User with id=" + user.getId() + " has been deleted");
-        userService.deleteUser(user);
+    @DeleteMapping("/{id}")
+    public void deleteUser(@RequestBody int id) {
+        log.info("User with id=" + id + " has been deleted");
+        userService.deleteUser(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

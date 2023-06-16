@@ -11,11 +11,12 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class UserService {
-
     private final UserStorage userStorage;
 
     @Autowired
@@ -42,11 +43,19 @@ public class UserService {
         }
     }
 
-    public static void loginInName(User user) {
+    private static void loginInName(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             log.info("Логин присвоен в роле имени");
             user.setName(user.getLogin());
         }
+    }
+
+    private void validate(User user) {
+        if (user.getLogin().contains(" ")) {
+            log.debug("Login User: {}", user.getLogin());
+            throw new ValidationException("логин не может содержать пробелы");
+        }
+        UserService.loginInName(user);
     }
 
     public List<User> getAll() {
@@ -56,6 +65,7 @@ public class UserService {
     public User createUser(User user) {
         validateIfUserExist(user.getId(), false);
         loginInName(user);
+        validate(user);
         return userStorage.createUser(user);
     }
 
@@ -77,6 +87,10 @@ public class UserService {
     public void addFriend(int userId, int friendId) {
         validateIfUserExist(userId, true);
         validateIfUserExist(friendId, true);
+        User user1 = userStorage.getUsers().get(userId);
+        validate(user1);
+        User user2 = userStorage.getUsers().get(userId);
+        validate(user2);
         userStorage.addFriend(userId, friendId);
         userStorage.addFriend(friendId, userId);
     }
@@ -88,18 +102,25 @@ public class UserService {
         userStorage.deleteFriend(friendId, userId);
     }
 
-    public void deleteUser(User user) {
-        validateIfUserExist(user.getId(), true);
-        userStorage.deleteUser(user);
+    public void deleteUser(int id) {
+        validateIfUserExist(id, true);
+        userStorage.deleteUser(id);
     }
 
     public List<User> getFriends(int userId) {
-        return userStorage.getFriends(userId);
+        Set<Integer> friends = userStorage.getUsers().get(userId).getFriendsIds();
+        return friends.stream()
+                .map(userStorage.getUsers()::get)
+                .collect(Collectors.toList());
     }
 
     public List<User> getCommonFriends(int userId, int userIdToCompare) {
         validateIfUserExist(userId, true);
         validateIfUserExist(userIdToCompare, true);
-        return userStorage.getCommonFriends(userId, userIdToCompare);
+        List<User> friendsUser1 = getFriends(userId);
+        List<User> friendsUser2 = getFriends(userIdToCompare);
+        return friendsUser1.stream()
+                .filter(friendsUser2::contains)
+                .collect(Collectors.toList());
     }
 }

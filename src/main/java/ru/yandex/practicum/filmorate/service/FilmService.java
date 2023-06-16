@@ -12,13 +12,16 @@ import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final LocalDate FIRST_FILM_RELEASE = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(InMemoryFilmStorage inMemoryFilmStorage, InMemoryUserStorage inMemoryUserStorage) {
@@ -46,11 +49,19 @@ public class FilmService {
         }
     }
 
+    private void validate(Film film) {
+        if (film.getReleaseDate().isBefore(FIRST_FILM_RELEASE)) {
+            log.debug("Дата выпуска Film :{}", film.getReleaseDate());
+            throw new ValidationException("Дата выпуска Film недействительна");
+        }
+    }
+
     public List<Film> getAll() {
         return filmStorage.getAllFilms();
     }
 
     public Film createFilm(Film film) {
+        validate(film);
         checkFilm(film.getId(), false);
         return filmStorage.createFilm(film);
     }
@@ -76,7 +87,10 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(Integer id) {
-        return filmStorage.getPopularFilms(id);
+        return filmStorage.getFilms().values().stream()
+                .sorted((f1, f2) -> f2.getUserIdLikes().size() - f1.getUserIdLikes().size())
+                .limit(id)
+                .collect(Collectors.toList());
     }
 
     public Film getFilmById(Integer filmId) {

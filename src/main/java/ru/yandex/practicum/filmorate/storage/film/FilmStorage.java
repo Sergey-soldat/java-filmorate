@@ -17,8 +17,6 @@ public interface FilmStorage {
 
     void deleteLike(int filmId, int userId);
 
-    List<Film> getPopularFilms(int count);
-
     Film getFilmById(int filmId);
 
     Map<Integer, Film> getFilms();

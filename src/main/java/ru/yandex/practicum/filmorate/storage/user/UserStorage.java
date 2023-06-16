@@ -19,11 +19,7 @@ public interface UserStorage {
 
     void deleteFriend(int userId, int friendId);
 
-    void deleteUser(User user);
-
-    List<User> getFriends(int userId);
-
-    List<User> getCommonFriends(int userId, int userIdToCompare);
+    void deleteUser(int id);
 
     public Map<Integer, User> getUsers();
 }
