@@ -23,5 +23,6 @@ public class User {
     private String name;
     @PastOrPresent
     private LocalDate birthday;
+    private boolean statusFriend; // 0(false) неподтверждённая, 1(true) - иначе.
     private Set<Integer> friendsIds = new HashSet<>();
 }

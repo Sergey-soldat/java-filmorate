@@ -21,5 +21,7 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "продолжительность должна быть отрицательной")
     private int duration;
+    private String genre;
+    private String ratingMPA;
     private Set<Integer> userIdLikes = new HashSet<>();
 }
