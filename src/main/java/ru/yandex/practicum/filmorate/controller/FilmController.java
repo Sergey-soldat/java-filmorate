@@ -1,74 +1,64 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.IDException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.*;
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
-
 public class FilmController {
+    private final FilmService filmService;
 
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int id = 1;
-    private static final LocalDate FIRST_FILM_RELEASE = LocalDate.of(1895, 12, 28);
-
-    private Integer generateID() {
-        return id++;
-    }
-
-    private void containsKeyId(Film film) {
-        if (films.containsKey(film.getId())) {
-            log.debug("Film с id:{}", film.getId());
-            throw new IDException("Id уже занят");
-        }
-    }
-
-    @PostMapping
-    public Film create(@RequestBody @Valid Film film) {
-        containsKeyId(film);
-        film.setId(generateID());
-        validate(film);
-        films.put(film.getId(), film);
-        log.info("Создан Film с id:{}", film.getId());
-        return film;
-    }
-
-    private void validate(Film film) {
-        if (film.getReleaseDate().isBefore(FIRST_FILM_RELEASE)) {
-            log.debug("Дата выпуска Film :{}", film.getReleaseDate());
-            throw new ValidationException("Дата выпуска Film недействительна");
-        }
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
     }
 
     @GetMapping
-    public Collection<Film> getAll() {
-        log.info("Возвращён список фильмов");
-        return films.values();
+    public List<Film> getAll() {
+        log.info("Все фильмы {}", filmService.getAll());
+        return filmService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Integer id) {
+        log.info("Фильм с id" + id + " :" + filmService.getFilmById(id));
+        return filmService.getFilmById(id);
+    }
+
+    @PostMapping
+    public Film createFilm(@Valid @RequestBody Film film) {
+        log.info("Фильм " + film.getName() + " с айди =" + film.getId() + " создан");
+        return filmService.createFilm(film);
     }
 
     @PutMapping
-    public Film put(@RequestBody @Valid Film film) {
-        if ((id <= 0)) {
-            log.debug("Film с id:{}", film.getId());
-            throw new ValidationException("id должен быть больше 0");
-        }
-        if (!films.containsKey(film.getId())) {
-            log.debug("Film с id:{}", film.getId());
-            throw new IDException("Id не обнаружен");
-        }
-        validate(film);
-        films.put(film.getId(), film);
-        log.info("Film с id:{} обновлен", film.getId());
-        return film;
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        log.info("Фильм " + film.getName() + " с айди = " + film.getId() + " обновлен");
+        return filmService.update(film);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
+        log.info("Пользователь  с id=" + userId + " поставил свой лайк фильму с id=" + id);
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Integer id, @PathVariable int userId) {
+        log.info("Пользователь  с айди = " + id + " удалил свой лайк у Пользователя с айди " + userId);
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getMostPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
+        log.info("Вывод популярных фильмов" + filmService.getMostPopularFilms(count));
+        return filmService.getMostPopularFilms(count);
     }
 }
