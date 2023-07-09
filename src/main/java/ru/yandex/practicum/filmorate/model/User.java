@@ -12,7 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    private int id;
+    private int id= 0;
     @NotNull
     @Email(message = "email должно содержать символы или цифры")
     private String email;
@@ -23,6 +23,18 @@ public class User {
     private String name;
     @PastOrPresent
     private LocalDate birthday;
-    private boolean statusFriend; // 0(false) неподтверждённая, 1(true) - иначе.
-    private Set<Integer> friendsIds = new HashSet<>();
+    public User(@NonNull String email, @NonNull String login, String name, @NonNull LocalDate birthday) {
+        this.email = email;
+        this.login = login;
+        this.name = setName(name);
+        this.birthday = birthday;
+    }
+
+    private String setName(String name) {
+        if (name == null || name.isBlank()) {
+            return login;
+        }
+        return name;
+    }
+//    private Set<Integer> friendsIds = new HashSet<>();
 }

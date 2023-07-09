@@ -2,8 +2,11 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FriendsService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -14,63 +17,54 @@ import java.util.*;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final FriendsService friendsService;
 
-    @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FriendsService friendsService) {
         this.userService = userService;
-    }
-
-    @GetMapping
-    public List<User> getAll() {
-        log.info("Все пользователи" + userService.getAll());
-        return userService.getAll();
-    }
-
-    @GetMapping("/{id}")
-    public User getUser(@PathVariable int id) {
-        log.info("Пользователь с id=" + id);
-        return userService.getUser(id);
-    }
-
-    @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        log.info("User " + user.getEmail() + "was added");
-        return userService.createUser(user);
-    }
-
-    @PutMapping
-    public User updateUser(@Valid @RequestBody User user) {
-        log.info("User " + user.getEmail() + "was updated");
-        return userService.update(user);
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteUser(@RequestBody int id) {
-        log.info("User with id=" + id + " has been deleted");
-        userService.deleteUser(id);
-    }
-
-    @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("User with id=" + id + " add friend with id=" + friendId);
-        userService.addFriend(id, friendId);
+        this.friendsService = friendsService;
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("User with id=" + id + " delete friend with id=" + friendId);
-        userService.deleteFriend(id, friendId);
+    public void deleteFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
+        friendsService.deleteFriend(id, friendId);
     }
 
-    @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable int id) {
-        log.info("Все друзья пользователя с id" + id);
-        return userService.getFriends(id);
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
+        friendsService.addFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
-        log.info("Общие друзья пользователей с id" + id + " и " + otherId);
-        return userService.getCommonFriends(id, otherId);
+    public List<User> getCommonFried(@PathVariable Integer id, @PathVariable Integer otherId) {
+        return friendsService.getCommonFriends(id, otherId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable Integer id) {
+        return friendsService.getFriendsList(id);
+    }
+
+    @GetMapping("/{userId}")
+    public User getUserById(@PathVariable("userId") Integer id) {
+        return userService.getUser(id);
+    }
+
+    @GetMapping
+    public Collection<User> findAll() {
+        return userService.findAll();
+    }
+
+    @PostMapping
+    public ResponseEntity<User> create(@Valid @RequestBody User user) {
+        return new ResponseEntity<>(userService.createUser(user), HttpStatus.OK);
+    }
+
+    @PutMapping
+    public ResponseEntity<User> update(@Valid @RequestBody User user) {
+        User updatedUser = userService.update(user);
+        if (updatedUser == null) {
+            return new ResponseEntity<>(user, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }
