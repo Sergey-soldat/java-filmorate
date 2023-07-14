@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.dao.MpaDao;
-import ru.yandex.practicum.filmorate.exception.FilmIdException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;
@@ -48,7 +48,7 @@ public class MpaDb implements MpaDao {
         SqlRowSet resultSet = jdbcTemplate.queryForRowSet(sql, id);
         if (resultSet.next()) {
             if (resultSet.getInt("count(*)") == 0) {
-                throw new FilmIdException(String.format("Рейтинг с id %s не существует", id));
+                throw new NotFoundException(String.format("Рейтинг с id %s не существует", id));
             }
         }
     }

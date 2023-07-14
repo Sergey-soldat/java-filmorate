@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.dao.dao;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 public interface UserDao {
 
@@ -14,7 +12,7 @@ public interface UserDao {
 
     User getUser(Integer userId);
 
-    void deleteUser(int id);
+    void deleteUser(Integer id);
 
     void validationId(Integer id);
 

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.dao.FilmDao;
 import ru.yandex.practicum.filmorate.dao.dao.GenreDao;
 import ru.yandex.practicum.filmorate.dao.dao.MpaDao;
-import ru.yandex.practicum.filmorate.exception.FilmIdException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
@@ -28,10 +28,16 @@ public class FilmDb implements FilmDao {
     private final MpaDao mpaDao;
     private final GenreDao genreStorage;
 
-    public FilmDb(JdbcTemplate jdbcTemplate, MpaDao mpaStorage, GenreDao genreStorage) {
+    public FilmDb(JdbcTemplate jdbcTemplate, MpaDb mpaStorage, GenreDb genreStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaDao = mpaStorage;
         this.genreStorage = genreStorage;
+    }
+
+    @Override
+    public Collection<Film> findAllTopFilms(Integer count) {
+        String sql = "SELECT * FROM FILMS LEFT JOIN  LIKES L on FILMS.FILM_ID = L.FILM_ID " + "GROUP BY FILMS.FILM_ID ORDER BY COUNT(L.FILM_ID) DESC LIMIT ?";
+        return jdbcTemplate.query(sql, ((rs, rowNum) -> makeFilm(rs)), count);
     }
 
     @Override
@@ -66,7 +72,7 @@ public class FilmDb implements FilmDao {
     public boolean updateFilm(Film film) {
         try {
             validationId(film.getId());
-        } catch (FilmIdException e) {
+        } catch (NotFoundException e) {
             return false;
         }
         String sql = "UPDATE FILMS SET  NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?,DURATION=?,RATING_ID=?" + "                WHERE FILM_ID = ?;";
@@ -105,7 +111,7 @@ public class FilmDb implements FilmDao {
         SqlRowSet resultSet = jdbcTemplate.queryForRowSet(sql, id);
         if (resultSet.next()) {
             if (resultSet.getInt("count(*)") == 0) {
-                throw new FilmIdException(String.format("Фильм с id %s не существует", id));
+                throw new NotFoundException(String.format("Фильм с id %s не существует", id));
             }
         }
     }

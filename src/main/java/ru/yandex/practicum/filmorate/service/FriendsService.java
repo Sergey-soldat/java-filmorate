@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.dao.FriendsDao;
 import ru.yandex.practicum.filmorate.dao.dao.UserDao;
 import ru.yandex.practicum.filmorate.dao.db.FriendsDb;
@@ -9,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class FriendsService {
     private final FriendsDao friendStorage;
     private final UserDao userStorage;

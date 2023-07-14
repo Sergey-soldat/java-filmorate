@@ -1,50 +1,99 @@
-//import org.junit.jupiter.api.Test;
-//import ru.yandex.practicum.filmorate.exception.ValidationException;
-//import ru.yandex.practicum.filmorate.model.User;
-//
-//import ru.yandex.practicum.filmorate.service.UserService;
-//import ru.yandex.practicum.filmorate.storage.user.InMemoryUserDao;
-//
-//import java.time.LocalDate;
-//import java.util.HashSet;
-//
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.junit.jupiter.api.Assertions.assertThrows;
-//
-//public class UserTest {
-//    private final InMemoryUserDao userStorage = new InMemoryUserDao();
-//    private final UserService userService = new UserService(userStorage);
-//
-//    @Test
-//    public void testUserValidateRightCreation() {
-//        User user = new User(3, "yandex@ya.ru", "yandex", "Test",
-//                LocalDate.of(2000, 1, 1), new HashSet<>());
-//        assertEquals(user, userService.createUser(user));
-//    }
-//
-//    @Test
-//    public void testUserWithoutName() {
-//        User user = new User(33, "yandex@ya.ru", "yandex", "",
-//                LocalDate.of(2000, 1, 1), new HashSet<>());
-//        userService.createUser(user);
-//        assertEquals(user.getName(), user.getLogin());
-//    }
-//
-//    @Test
-//    public void spaceInLogin() {
-//        User user = new User(3, "yandex@ya.ru", "yande x", "Test",
-//                LocalDate.of(2000, 1, 1),  new HashSet<>());
-//        assertThrows(ValidationException.class, () -> userService.createUser(user));
-//    }
-//
-//    @Test
-//    public void containsKeyId() {
-//        User user = new User(3, "yandex@ya.ru", "yandex", "Name1",
-//                LocalDate.of(2000, 1, 1),  new HashSet<>());
-//        User user2 = new User(3, "yandex@ya.ru", "yandex", "Name2",
-//                LocalDate.of(2000, 1, 1),  new HashSet<>());
-//        userService.createUser(user);
-//        userService.createUser(user2);
-//        assertEquals("Name2", user2.getName());
-//    }
-//}
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.model.User;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class UserTest {
+    private Validator validator;
+    private User user;
+
+    @BeforeEach
+    void beforeEach() {
+        this.validator = Validation.buildDefaultValidatorFactory().getValidator();
+    }
+
+    @DisplayName("Проверяет валидацию корректного пользователя")
+    @Test
+    void checksTheValidUser() {
+        user = new User("mail@mail.ru", "Alina", "Alina", LocalDate.of(2023, 4, 22));
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        assertEquals(0, violations.size());
+    }
+
+    @DisplayName("Проверяет валидацию  пользователя, если email пустой")
+    @Test
+    void checksTheUserEmailIfItIsEmpty() {
+        user = new User("", "Alina", "Alina", LocalDate.of(2023, 4, 22));
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        String m = getMessage(violations);
+        assertEquals("email не может быть пустым", m);
+    }
+
+    @DisplayName("Проверяет валидацию  пользователя, если email не содержит @")
+    @Test
+    void checksTheUserIfTheEmailDoesNotContainAt() {
+        user = new User("mail", "Alina", "Alina", LocalDate.of(2023, 4, 22));
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        String m = getMessage(violations);
+        assertEquals("Некорректный email", m);
+    }
+
+    @DisplayName("Проверяет валидацию  пользователя, если логин пустой")
+    @Test
+    void checksTheUserLoginIfItIsEmpty() {
+        user = new User("mail@mail.ru", "  ", "Alina", LocalDate.of(2023, 4, 22));
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        String m = getMessage(violations);
+        assertEquals("Логин не может содержать пробелы", m);
+    }
+
+    @DisplayName("Проверяет валидацию  пользователя, если логин содержит пробелы")
+    @Test
+    void checksTheUserLoginIfItIsContainsSpaces() {
+        user = new User("mail@mail.ru", "Ali na", "Alina", LocalDate.of(2023, 4, 22));
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        String m = getMessage(violations);
+        assertEquals("Логин не может содержать пробелы", m);
+    }
+
+    @DisplayName("Проверяет валидацию  пользователя, если имя не указанно")
+    @Test
+    void checksTheUserLoginIfTheNameIsNull() {
+        user = new User("mail@mail.ru", "Alina", null, LocalDate.of(2023, 4, 22));
+
+        assertEquals("Alina", user.getName());
+    }
+
+    @DisplayName("Проверяет валидацию  пользователя, если дата рождения в будущем")
+    @Test
+    void checksTheUserIfTheBirthdayIsInTheFuture() {
+        user = new User("mail@mail.ru", "Alina", "Alina", LocalDate.now().plusDays(1));
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        String m = getMessage(violations);
+        assertEquals("Дата рождения не может быть в будущем времени", m);
+    }
+
+    private String getMessage(Set<ConstraintViolation<User>> violations) {
+        String m = "";
+        Optional<String> message = violations.stream().findFirst().map(ConstraintViolation::getMessage);
+        if (message.isPresent()) {
+            m = message.get();
+        }
+        return m;
+    }
+}

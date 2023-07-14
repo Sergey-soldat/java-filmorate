@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import  lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.dao.LikeDao;
 import ru.yandex.practicum.filmorate.dao.db.FilmDb;
@@ -29,6 +29,10 @@ public class FilmService {
     public Film getFilmById(Integer id) {
         filmStorage.validationId(id);
         return filmStorage.getFilmById(id);
+    }
+
+    public Collection<Film> findAllTopFilms(Integer count) {
+        return filmStorage.findAllTopFilms(count);
     }
 
     public void deleteLike(Integer filmId, Integer userId) {

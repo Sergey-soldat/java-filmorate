@@ -7,7 +7,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.dao.UserDao;
-import ru.yandex.practicum.filmorate.exception.UserIdException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
@@ -21,6 +21,7 @@ import java.util.Objects;
 @Component
 public class UserDb implements UserDao {
     private final JdbcTemplate jdbcTemplate;
+
     public UserDb(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -50,7 +51,7 @@ public class UserDb implements UserDao {
     public boolean updateUser(User user) {
         try {
             validationId(user.getId());
-        } catch (UserIdException e) {
+        } catch (NotFoundException e) {
             return false;
         }
         String sql = "UPDATE USERS SET  EMAIL = ?, LOGIN = ?, NAME = ?,BIRTHDAY= ?" + "WHERE USER_ID = ?;";
@@ -59,7 +60,7 @@ public class UserDb implements UserDao {
     }
 
     @Override
-    public void deleteUser(int id) {
+    public void deleteUser(Integer id) {
         String sql = "DELETE FROM USERS WHERE USER_ID = ?";
         jdbcTemplate.update(sql, id);
     }
@@ -83,7 +84,7 @@ public class UserDb implements UserDao {
         SqlRowSet resultSet = jdbcTemplate.queryForRowSet(sql, id);
         if (resultSet.next()) {
             if (resultSet.getInt("count(*)") == 0) {
-                throw new UserIdException(String.format("Пользователь с id %s не существует", id));
+                throw new NotFoundException(String.format("Пользователь с id %s не существует", id));
             }
         }
     }

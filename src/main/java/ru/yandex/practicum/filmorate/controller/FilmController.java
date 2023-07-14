@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +8,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.*;
+import javax.validation.constraints.Positive;
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @Slf4j
@@ -24,7 +23,7 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) {
+    public void addLike(@PathVariable Integer id, @PathVariable Integer userId) {
         filmService.addLike(id, userId);
     }
 
@@ -41,6 +40,12 @@ public class FilmController {
     @GetMapping
     public Collection<Film> findAll() {
         return filmService.findAll();
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> findAll(@RequestParam(value = "count", defaultValue = "10", required = false)
+                                    @Positive(message = "Некорректное значение count") Integer count) {
+        return filmService.findAllTopFilms(count);
     }
 
     @PostMapping

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
+import ru.yandex.practicum.filmorate.validation.CheckReleaseDate;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
@@ -10,24 +11,15 @@ import java.util.Set;
 @Data
 public class Film {
     private int id = 0;
-    @NotNull(message = "Имя должно содержать символы")
-    @NotEmpty
-    private String name;
-    @Size(max = 200, message = "вместимость описания до 200 символов")
-    private String description;
-    @PastOrPresent(message = "дата выпуска не должна быть будущей")
-    private LocalDate releaseDate;
-    @Positive(message = "продолжительность должна быть отрицательной")
-    private int duration;
-    private Set<Integer> userIdLikes = new HashSet<>();
+    @NotBlank(message = "Название фильма не может быть пустым")
+    private final String name;
+    @Size(max = 200, message = "Описание фильма превышает 200 символов")
+    private final String description;
+    @CheckReleaseDate
+    private final LocalDate releaseDate;
+    @PositiveOrZero(message = "Продолжительность фильма не может быть отрицательной")
+    private final int duration;
     private Mpa mpa;
-//    private int rate;
+    private int rate;
     private final Set<Genre> genres = new HashSet<>();
-
-    public Film(String name, String description, LocalDate releaseDate, int duration) {
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-    }
 }
