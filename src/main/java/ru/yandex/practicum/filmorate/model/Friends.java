@@ -8,8 +8,8 @@ public class Friends {
     private int friendId;
     private boolean friendsStatus = false;
 
-    public Friends(int user_id, int friend_id) {
-        this.userId = user_id;
-        this.friendId = friend_id;
+    public Friends(int userId, int friendId) {
+        this.userId = userId;
+        this.friendId = friendId;
     }
 }
