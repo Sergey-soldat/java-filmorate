@@ -1,3 +1,5 @@
+package ru.yandex.practicum.filmorate.validation;
+
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,14 +30,11 @@ class FilmoRateApplicationTests {
     private final UserDb userStorage;
     private final FilmDb filmStorage;
     private final MpaDb mpaStorage;
-
     private final GenreDb genreStorage;
-
 
     @Test
     @DisplayName("Получение пользователя по id")
     public void testFindUserById() {
-
         User user = userStorage.getUser(1);
 
         assertThat(user).hasFieldOrPropertyWithValue("id", 1);
@@ -45,7 +44,6 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Получение всех пользователей")
     public void testFindAllUsers() {
-
         List<User> users = (List<User>) userStorage.getUsers();
 
         assertThat(users.size()).isEqualTo(2);
@@ -85,7 +83,6 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Получение фильма по id")
     public void testFindFilmById() {
-
         Film film = filmStorage.getFilmById(1);
 
         assertThat(film).hasFieldOrPropertyWithValue("id", 1);
@@ -95,7 +92,6 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Получение всех фильмов")
     public void testFindAllFilms() {
-
         List<Film> films = (List<Film>) filmStorage.getFilms();
 
         assertThat(films.size()).isEqualTo(3);
