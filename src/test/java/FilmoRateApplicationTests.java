@@ -5,7 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
-import ru.yandex.practicum.filmorate.dao.db.*;
+import ru.yandex.practicum.filmorate.dao.db.FilmDb;
+import ru.yandex.practicum.filmorate.dao.db.GenreDb;
+import ru.yandex.practicum.filmorate.dao.db.MpaDb;
+import ru.yandex.practicum.filmorate.dao.db.UserDb;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -27,7 +30,6 @@ class FilmoRateApplicationTests {
     private final MpaDb mpaStorage;
 
     private final GenreDb genreStorage;
-    private final LikeDb likeStorage;
 
 
     @Test
