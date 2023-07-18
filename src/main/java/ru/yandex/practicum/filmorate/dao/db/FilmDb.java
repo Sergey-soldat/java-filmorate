@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.dao.db;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,28 +18,28 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class FilmDb implements FilmDao {
     private final JdbcTemplate jdbcTemplate;
     private final MpaDao mpaDao;
     private final GenreDao genreStorage;
 
-    public FilmDb(JdbcTemplate jdbcTemplate, MpaDb mpaStorage, GenreDb genreStorage) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.mpaDao = mpaStorage;
-        this.genreStorage = genreStorage;
-    }
-
     @Override
-    public Collection<Film> findAllTopFilms(Integer count) {
-        String sql = "SELECT * FROM FILMS LEFT JOIN  LIKES L on FILMS.FILM_ID = L.FILM_ID " + "GROUP BY FILMS.FILM_ID ORDER BY COUNT(L.FILM_ID) DESC LIMIT ?";
-        return jdbcTemplate.query(sql, ((rs, rowNum) -> makeFilm(rs)), count);
+    public Collection<Integer> findAllTopFilms(Integer count) {
+        String sql = "select f.film_id " +
+                "from films as f " +
+                "left join likes as l on f.film_id=l.film_id " +
+                "group by f.film_id " +
+                "order by count(l.user_id) desc " +
+                "limit ?";
+        return jdbcTemplate.queryForList(sql, Integer.class, count);
     }
 
     @Override
@@ -47,7 +49,6 @@ public class FilmDb implements FilmDao {
             KeyHolder holder = new GeneratedKeyHolder();
             film.setMpa(mpaDao.getById(film.getMpa().getId()));
             String sql = "INSERT INTO FILMS(NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID) " + "VALUES (?, ?, ?, ?,?)";
-
             jdbcTemplate.update(connection -> {
                 PreparedStatement ps = connection.prepareStatement(sql, new String[]{"FILM_ID"});
                 ps.setString(1, film.getName());
@@ -58,14 +59,33 @@ public class FilmDb implements FilmDao {
                 return ps;
             }, holder);
             film.setId(Objects.requireNonNull(holder.getKey()).intValue());
-            Set<Genre> genres = film.getGenres();
-            for (Genre genre : genres) {
-                film.getGenres().remove(genre);
-                film.getGenres().add(genreStorage.getById(genre.getId()));
-                genreStorage.createGenreByFilm(genre.getId(), film.getId());
-            }
+            updateGenreFilmTable(film);
             log.info("Фильм   {} сохранен", film);
         }
+    }
+
+    private void updateGenreFilmTable(Film film) {
+        String sql = "delete from film_genre where film_id = ?";
+        jdbcTemplate.update(sql, film.getId());
+
+        List<Integer> genres = film.getGenres().stream()
+                .map(Genre::getId)
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate("insert into film_genre (film_id,genre_id) values (?,?)",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                        preparedStatement.setLong(1, film.getId());
+                        preparedStatement.setLong(2, genres.get(i));
+
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return genres.size();
+                    }
+                });
     }
 
     @Override
@@ -77,12 +97,7 @@ public class FilmDb implements FilmDao {
         }
         String sql = "UPDATE FILMS SET  NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?,DURATION=?,RATING_ID=?" + "                WHERE FILM_ID = ?;";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
-        setMpa(film, film.getMpa().getId());
-        Set<Genre> genres = film.getGenres();
-        genreStorage.deleteAllGenresByFilm(film.getId());
-        for (Genre genre : genres) {
-            genreStorage.createGenreByFilm(genre.getId(), film.getId());
-        }
+        updateGenreFilmTable(film);
         return true;
     }
 
@@ -117,25 +132,16 @@ public class FilmDb implements FilmDao {
     }
 
     private Film makeFilm(ResultSet resultSet) throws SQLException {
-        int id = resultSet.getInt("film_id");
-        String name = resultSet.getString("name");
-        String description = resultSet.getString("description");
-        LocalDate releaseDate = resultSet.getDate("release_date").toLocalDate();
-        int duration = resultSet.getInt("duration");
-        int mpa = resultSet.getInt("rating_id");
-        Film film = new Film(name, description, releaseDate, duration);
-        film.setId(id);
-        setMpa(film, mpa);
-        setGenre(film);
+        Film film = new Film();
+        film.setId(resultSet.getInt("film_id"));
+        film.setName(resultSet.getString("name"));
+        film.setDescription(resultSet.getString("description"));
+        film.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
+        film.setDuration(resultSet.getInt("duration"));
+        film.setMpa(mpaDao.getById(resultSet.getInt("rating_id")));
+        for (Genre genre : genreStorage.getGenresByFilm(resultSet.getInt("film_id"))) {
+            film.getGenres().add(genre);
+        }
         return film;
-    }
-
-    private void setMpa(Film film, int mpa) {
-        film.setMpa(mpaDao.getById(mpa));
-    }
-
-    private void setGenre(Film film) {
-        film.getGenres().clear();
-        film.getGenres().addAll(genreStorage.getGenresByFilm(film.getId()));
     }
 }

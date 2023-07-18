@@ -1,8 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -13,43 +16,48 @@ import java.util.Collection;
 
 @RestController
 @Slf4j
+@Validated
 @RequestMapping("/films")
+@RequiredArgsConstructor
+@Controller
 public class FilmController {
 
     private final FilmService filmService;
 
-    public FilmController(FilmService filmService) {
-        this.filmService = filmService;
-    }
-
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Integer id, @PathVariable Integer userId) {
+        log.info("Добавлен лайк фильму, по id: {}", id);
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(@PathVariable Integer id, @PathVariable Integer userId) {
+        log.info("Удалён лайк фильму, по id: {}", id);
         filmService.deleteLike(id, userId);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Film> getFilmById(@PathVariable Integer id) {
+        log.info("Получен запрос Get /films/{id} ,получение фильма по id: {}", id);
         return new ResponseEntity<>(filmService.getFilmById(id), HttpStatus.OK);
     }
 
     @GetMapping
     public Collection<Film> findAll() {
+        log.info("Получены все фильмы");
         return filmService.findAll();
     }
 
     @GetMapping("/popular")
     public Collection<Film> findAll(@RequestParam(value = "count", defaultValue = "10", required = false)
                                     @Positive(message = "Некорректное значение count") Integer count) {
+        log.info("Получение популярных фильмов");
         return filmService.findAllTopFilms(count);
     }
 
     @PostMapping
     public ResponseEntity<Film> create(@Valid @RequestBody Film film) {
+        log.info("Создание фильма");
         return new ResponseEntity<>(filmService.createFilm(film), HttpStatus.OK);
     }
 
@@ -57,8 +65,10 @@ public class FilmController {
     public ResponseEntity<Film> update(@Valid @RequestBody Film film) {
         Film updatedFilm = filmService.updateFilm(film);
         if (updatedFilm == null) {
+            log.debug("Такой филь не найден");
             return new ResponseEntity<>(film, HttpStatus.NOT_FOUND);
         }
+        log.info("Обновление фильма");
         return new ResponseEntity<>(film, HttpStatus.OK);
     }
 }

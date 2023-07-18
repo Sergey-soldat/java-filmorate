@@ -28,7 +28,11 @@ class FilmTests {
     @DisplayName("Проверяет валидацию корректного фильма")
     @Test
     void checksTheValidFilm() {
-        film = new Film("Титаник", "описание", LocalDate.of(1895, 12, 28), 100);
+        film = new Film();
+        film.setName("Титаник");
+        film.setDescription("Описание");
+        film.setReleaseDate(LocalDate.of(1895, 12, 28));
+        film.setDuration(100);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         assertEquals(violations.size(), 0);
@@ -37,7 +41,11 @@ class FilmTests {
     @DisplayName("Проверяет валидацию фильма с продолжительностью -1")
     @Test
     void checkAFilmWithANegativeDuration() {
-        Film film = new Film("Титаник", "описание", LocalDate.of(1895, 12, 29), -1);
+        Film film = new Film();
+        film.setName("Титаник");
+        film.setDescription("Описание");
+        film.setReleaseDate(LocalDate.of(1895, 12, 28));
+        film.setDuration(-1);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         String m = getMessage(violations);
@@ -47,7 +55,11 @@ class FilmTests {
     @DisplayName("Проверяет валидацию фильма, если имя пустое")
     @Test
     void checksTheFilmNameIfItIsEmpty() {
-        film = new Film("", "описание", LocalDate.of(2010, 1, 1), 100);
+        film = new Film();
+        film.setName("");
+        film.setDescription("Описание");
+        film.setReleaseDate(LocalDate.of(1895, 12, 28));
+        film.setDuration(100);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         String m = getMessage(violations);
@@ -57,7 +69,11 @@ class FilmTests {
     @DisplayName("Проверяет валидацию фильма, если имя содержит только пробелы")
     @Test
     void checksTheFilmNameIfItIsContainsOnlySpaces() {
-        film = new Film("  ", "описание", LocalDate.of(2010, 1, 1), 100);
+        film = new Film();
+        film.setName(" ");
+        film.setDescription("Описание");
+        film.setReleaseDate(LocalDate.of(1895, 12, 28));
+        film.setDuration(100);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         String m = getMessage(violations);
@@ -67,11 +83,14 @@ class FilmTests {
     @DisplayName("Проверяет валидацию фильма, если описание содержит 201 символ")
     @Test
     void checksTheFilmDescriptionContaining201Characters() {
-        film = new Film("Титаник", "123456789_123456789_123456789" +
+        film = new Film();
+        film.setName("Титаник");
+        film.setDescription("123456789_123456789_123456789" +
                 "_123456789_123456789_123456789_123456789_123456789_123456789_123456789" +
                 "_123456789_123456789_123456789_123456789_123456789_123456789_123456789" +
-                "_123456789_123456789_123456789_1",
-                LocalDate.of(2010, 1, 1), 100);
+                "_123456789_123456789_123456789_1");
+        film.setReleaseDate(LocalDate.of(1895, 12, 28));
+        film.setDuration(100);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         String m = getMessage(violations);
@@ -81,7 +100,12 @@ class FilmTests {
     @DisplayName("Проверяет валидацию фильма, если его дата релиза 27 декабря 1895")
     @Test
     void checksTheFilmIfTheReleaseDateIsDecember27Year1895() {
-        film = new Film("Титаник", "описание", LocalDate.of(1895, 12, 27), 100);
+        film = new Film();
+        film.setName("Титаник");
+        film.setDescription("Описание");
+        film.setReleaseDate(LocalDate.of(1895, 12, 27));
+        film.setDuration(100);
+
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         String m = getMessage(violations);

@@ -16,7 +16,7 @@ public interface FilmDao {
 
     Collection<Film> getFilms();
 
-    Collection<Film> findAllTopFilms(Integer count);
+    Collection<Integer> findAllTopFilms(Integer count);
 
     void validationId(Integer id);
 }

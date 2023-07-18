@@ -1,30 +1,24 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.dao.LikeDao;
-import ru.yandex.practicum.filmorate.dao.db.FilmDb;
-import ru.yandex.practicum.filmorate.dao.db.LikeDb;
-import ru.yandex.practicum.filmorate.dao.db.UserDb;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.dao.FilmDao;
 import ru.yandex.practicum.filmorate.dao.dao.UserDao;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private final FilmDao filmStorage;
     private final UserDao userStorage;
     private final LikeDao likeStorage;
-
-    public FilmService(FilmDb filmStorage, UserDb userStorage, LikeDb likeStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.likeStorage = likeStorage;
-    }
 
     public Film getFilmById(Integer id) {
         filmStorage.validationId(id);
@@ -32,7 +26,9 @@ public class FilmService {
     }
 
     public Collection<Film> findAllTopFilms(Integer count) {
-        return filmStorage.findAllTopFilms(count);
+        return filmStorage.findAllTopFilms(count).stream()
+                .map(filmStorage::getFilmById)
+                .collect(Collectors.toList());
     }
 
     public void deleteLike(Integer filmId, Integer userId) {

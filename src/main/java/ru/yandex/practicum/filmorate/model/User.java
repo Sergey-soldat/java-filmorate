@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
+import org.springframework.data.relational.core.sql.In;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
@@ -20,6 +23,8 @@ public class User {
     @NonNull
     @Past(message = "Дата рождения не может быть в будущем времени")
     private LocalDate birthday;
+    private boolean friendsStatus = false;
+    private Set<Integer> friends = new HashSet<>();
 
     public User(@NonNull String email, @NonNull String login, String name, @NonNull LocalDate birthday) {
         this.email = email;

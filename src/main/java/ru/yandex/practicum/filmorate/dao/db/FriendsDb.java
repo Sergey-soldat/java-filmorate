@@ -6,14 +6,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.dao.FriendsDao;
 import ru.yandex.practicum.filmorate.dao.dao.UserDao;
-import ru.yandex.practicum.filmorate.model.Friends;
-import ru.yandex.practicum.filmorate.model.User;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -34,17 +29,10 @@ public class FriendsDb implements FriendsDao {
     }
 
     @Override
-    public List<User> getFriendsList(Integer userId) {
-        userDao.validationId(userId);
-        String sql = "select * from FRIENDS where USER_ID = ?";
-        List<Friends> friends = jdbcTemplate.query(sql, (rs, rowNum) -> makeFollow(rs), userId);
-
-        List<User> friend = friends.stream().map(Friends::getFriendId).map(userDao::getUser).collect(Collectors.toList());
-
-        if (friend.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return friend;
+    public Collection<Integer> getUserFriendsById(int userId) {
+        log.debug("Получение списка друзей пользователя с id {}", userId);
+        String sql = "select FRIEND_ID from FRIENDS where USER_ID = ?";
+        return jdbcTemplate.queryForList(sql, Integer.class, userId);
     }
 
     @Override
@@ -83,9 +71,5 @@ public class FriendsDb implements FriendsDao {
             return result == 2;
         }
         return false;
-    }
-
-    private Friends makeFollow(ResultSet rs) throws SQLException {
-        return new Friends(rs.getInt("user_id"), rs.getInt("friend_id"));
     }
 }
