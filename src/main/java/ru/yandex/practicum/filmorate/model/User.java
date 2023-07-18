@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
-import org.springframework.data.relational.core.sql.In;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
