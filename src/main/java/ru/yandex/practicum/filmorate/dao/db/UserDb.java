@@ -1,102 +1,124 @@
 package ru.yandex.practicum.filmorate.dao.db;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.dao.UserDao;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
-@Component
+@Component("userDbStorage")
+@RequiredArgsConstructor
 public class UserDb implements UserDao {
     private final JdbcTemplate jdbcTemplate;
 
-    public UserDb(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Override
+    public User addUser(User user) {
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("users").usingGeneratedKeyColumns("id");
+        user.setId(simpleJdbcInsert.executeAndReturnKey(toMap(user)).intValue());
+        log.info("В базу добавлен новый пользователь. id - {}", user.getId());
+        return getUserById(user.getId());
     }
 
     @Override
-    public void createUser(User user) {
-        log.info("Сохранение пользователя {}", user);
-        if (user.getId() == 0) {
-            KeyHolder holder = new GeneratedKeyHolder();
-            String sql = "INSERT INTO USERS(EMAIL, LOGIN, NAME, BIRTHDAY) " + "VALUES (?, ?, ?, ?)";
-
-            jdbcTemplate.update(connection -> {
-                PreparedStatement ps = connection.prepareStatement(sql, new String[]{"USER_ID"});
-                ps.setString(1, user.getEmail());
-                ps.setString(2, user.getLogin());
-                ps.setString(3, user.getName());
-                ps.setString(4, user.getBirthday().toString());
-                return ps;
-            }, holder);
-
-            user.setId(Objects.requireNonNull(holder.getKey()).intValue());
-            log.info("Пользователь {}  сохранен", user);
-        }
-    }
-
-    @Override
-    public boolean updateUser(User user) {
-        try {
-            validationId(user.getId());
-        } catch (NotFoundException e) {
-            return false;
-        }
-        String sql = "UPDATE USERS SET  EMAIL = ?, LOGIN = ?, NAME = ?,BIRTHDAY= ?" + "WHERE USER_ID = ?;";
-        jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
-        return true;
-    }
-
-    @Override
-    public void deleteUser(Integer id) {
-        String sql = "DELETE FROM USERS WHERE USER_ID = ?";
-        jdbcTemplate.update(sql, id);
-    }
-
-    @Override
-    public User getUser(Integer id) {
-        validationId(id);
-        String sql = "SELECT * FROM USERS WHERE USER_ID = ?";
-        return jdbcTemplate.query(sql, ((rs, rowNum) -> makeUser(rs)), id).get(0);
-    }
-
-    @Override
-    public Collection<User> getUsers() {
-        String sql = "SELECT * FROM USERS";
-        return jdbcTemplate.query(sql, ((rs, rowNum) -> makeUser(rs)));
-    }
-
-    @Override
-    public void validationId(Integer id) {
-        String sql = "SELECT COUNT(*) FROM USERS WHERE USER_ID = ?";
-        SqlRowSet resultSet = jdbcTemplate.queryForRowSet(sql, id);
-        if (resultSet.next()) {
-            if (resultSet.getInt("count(*)") == 0) {
-                throw new NotFoundException(String.format("Пользователь с id %s не существует", id));
-            }
-        }
-    }
-
-    private User makeUser(ResultSet resultSet) throws SQLException {
-        int id = resultSet.getInt("user_id");
-        String email = resultSet.getString("email");
-        String login = resultSet.getString("login");
-        String name = resultSet.getString("name");
-        LocalDate birthday = resultSet.getDate("birthday").toLocalDate();
-        User user = new User(email, login, name, birthday);
-        user.setId(id);
+    public User updateUser(User user) {
+        String sqlQuery = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? " +
+                "WHERE id = ?;";
+        jdbcTemplate.update(sqlQuery,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday(),
+                user.getId());
+        log.info("Пользователь обновлен. id - {}", user.getId());
         return user;
+    }
+
+    @Override
+    public List<User> getUsers() {
+        String sqlQuery = "SELECT * FROM users;";
+        return jdbcTemplate.query(sqlQuery, this::mapRowToUsers);
+    }
+
+    @Override
+    public boolean checkUserExistInBd(int id) {
+        String sqlQuery = "select id, email, login, name, birthday " +
+                "FROM users WHERE id = ?;";
+        return !jdbcTemplate.query(sqlQuery, this::mapRowToUsers, id).isEmpty();
+    }
+
+    @Override
+    public User getUserById(int id) {
+        String sqlQuery = "select id, email, login, name, birthday " +
+                "FROM users WHERE id = ?;";
+        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToUsers, id);
+    }
+
+    @Override
+    public void addFriend(int userId, int friendId) {
+        String sqlQuery = "INSERT into friends (user_Id, friend_Id) values(?, ?);";
+        jdbcTemplate.update(sqlQuery, userId, friendId);
+    }
+
+    @Override
+    public List<User> getFriendsList(Integer id) {
+        String sqlQuery =
+                "SELECT \n" +
+                        "u.id , \n" +
+                        "u.email,\n" +
+                        "u.login,\n" +
+                        "u.name, \n" +
+                        "u.birthday,\n" +
+                        "FROM users u \n" +
+                        "JOIN friends f ON f.user_id  = ?\n" +
+                        "WHERE u.id  = f.FRIEND_ID ;";
+        return jdbcTemplate.query(sqlQuery, this::mapRowToUsers, id);
+    }
+
+    @Override
+    public List<Integer> getFriendsId(User user) {
+        String sqlQuery = "SELECT friend_id FROM friends WHERE user_id = ?;";
+        return jdbcTemplate.query(sqlQuery, this::mapRowToFriedIdFromFriends, user.getId());
+    }
+
+    @Override
+    public void deleteFriend(int userId, int friendId) {
+        String sql = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?;";
+        jdbcTemplate.update(sql, userId, friendId);
+    }
+
+    private Integer mapRowToFriedIdFromFriends(ResultSet resultSet, int rowNum) throws SQLException {
+        return resultSet.getInt("friend_id");
+    }
+
+    private User mapRowToUsers(ResultSet resultSet, int rowNum) throws SQLException {
+        User user = User.builder()
+                .id(resultSet.getInt("id"))
+                .email(resultSet.getString("email"))
+                .login(resultSet.getString("login"))
+                .name(resultSet.getString("name"))
+                .birthday(resultSet.getDate("birthday").toLocalDate())
+                .build();
+        user.setFriends(new HashSet<>(getFriendsId(user)));
+        return user;
+    }
+
+    public Map<String, Object> toMap(User user) {
+        Map<String, Object> values = new HashMap<>();
+        values.put("email", user.getEmail());
+        values.put("login", user.getLogin());
+        values.put("name", user.getName());
+        values.put("birthday", user.getBirthday());
+        return values;
     }
 }

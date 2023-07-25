@@ -1,22 +1,28 @@
 package ru.yandex.practicum.filmorate.dao.dao;
 
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
+@Component
 public interface FilmDao {
+    Film addFilm(Film film);
 
-    void createFilm(Film film);
+    Film updateFilm(Film film);
 
-    void deleteFilm(Film film);
+    List<Film> getFilms();
 
-    boolean updateFilm(Film film);
+    boolean checkFilmExistInBd(int id);
 
-    Film getFilmById(Integer filmId);
+    Film getFilmById(int id);
 
-    Collection<Film> getFilms();
+    void addLike(int userId, int filmId);
 
-    Collection<Integer> findAllTopFilms(Integer count);
+    void deleteLike(int userId, int filmId);
 
-    void validationId(Integer id);
+    List<Film> setLikesInFilm(List<Film> films);
+
+    Set<Integer> getLikesByFilmId(int filmId);
 }

@@ -2,12 +2,11 @@ package ru.yandex.practicum.filmorate.dao.dao;
 
 import ru.yandex.practicum.filmorate.model.Mpa;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface MpaDao {
-    Collection<Mpa> findAll();
 
-    Mpa getById(int id);
+    Mpa getMpaById(int id);
 
-    void validationId(Integer id);
+    List<Mpa> getAllMpa();
 }

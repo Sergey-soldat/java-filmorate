@@ -1,8 +1,12 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class ValidationException extends RuntimeException {
+import lombok.extern.slf4j.Slf4j;
 
-    public ValidationException(String message) {
-        super(message);
+@Slf4j
+public class ValidationException extends IllegalArgumentException {
+
+    public ValidationException() {
+        super("Не пройдена валидация");
+        log.error("Не пройдена валидация");
     }
 }

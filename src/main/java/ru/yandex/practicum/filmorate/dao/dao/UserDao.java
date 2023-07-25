@@ -1,20 +1,27 @@
 package ru.yandex.practicum.filmorate.dao.dao;
 
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
+import java.util.List;
 
+@Component
 public interface UserDao {
+    User addUser(User user);
 
-    void createUser(User user);
+    User updateUser(User user);
 
-    boolean updateUser(User user);
+    List<User> getUsers();
 
-    User getUser(Integer userId);
+    boolean checkUserExistInBd(int id);
 
-    void deleteUser(Integer id);
+    User getUserById(int id);
 
-    void validationId(Integer id);
+    void addFriend(int userId, int friendId);
 
-    Collection<User> getUsers();
+    List<Integer> getFriendsId(User user);
+
+    List<User> getFriendsList(Integer userId);
+
+    void deleteFriend(int userId, int friendId);
 }
