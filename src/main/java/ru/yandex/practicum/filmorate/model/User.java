@@ -1,28 +1,29 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.*;
-import org.springframework.lang.Nullable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder(toBuilder = true)
 public class User {
-    private int id;
+    private Integer id;
+    @Email
+    @NotBlank
     @NotNull
-    @Email(message = "email должно содержать символы или цифры")
     private String email;
-    @NotNull
-    @NotBlank(message = "Логин не может быть пустым!")
+    @Pattern(regexp = "^[^\\s]+$")
+    @NotBlank
     private String login;
-    @Nullable
     private String name;
     @PastOrPresent
     private LocalDate birthday;
-    private boolean statusFriend; // 0(false) неподтверждённая, 1(true) - иначе.
-    private Set<Integer> friendsIds = new HashSet<>();
+    private Set<Integer> friends;
 }
